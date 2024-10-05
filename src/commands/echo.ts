@@ -1,5 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 
 const echo = {
     data: new SlashCommandBuilder()
@@ -15,3 +14,5 @@ const echo = {
         await interaction.reply(`You said: ${message}`);
     },
 };
+
+export default echo;
