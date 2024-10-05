@@ -6,7 +6,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/bot.js",
-    "dev": "ts-node src/bot.ts"
   },
   "keywords": [],
   "author": "",
@@ -25,5 +24,6 @@
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
     "pg": "^8.13.0"
-  }
+  },
+  "type": "module"
 }
