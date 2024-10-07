@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { setWeekGoal } from '../drizzle/queries';
+import { setWeekGoal } from '../drizzle/queries.js';
 
 const setWeekGoalCommand = {
     data: new SlashCommandBuilder()
@@ -29,3 +29,5 @@ const setWeekGoalCommand = {
           }
     },
 };
+
+export default setWeekGoalCommand

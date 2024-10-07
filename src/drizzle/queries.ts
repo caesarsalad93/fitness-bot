@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "./db";
-import { users, weeklyUserGoals } from "./schema";
+import { db } from "./db.js";
+import { users, weeklyUserGoals } from "./schema.js";
 
 export async function setWeekGoal(
   discordId: string,
