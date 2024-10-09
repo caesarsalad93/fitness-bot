@@ -69,7 +69,7 @@ const viewGoals = {
       .setColor("#0099ff")
       .setTitle("Your Weekly Goals")
       .setDescription(
-        `Here are your goals for the week of ${weekStart.toDateString()}:`
+        `Hello ${user[0].discordUsername}! Here are your goals for the week of ${weekStart.toDateString()}:`
       );
 
     // Create buttons for each goal
