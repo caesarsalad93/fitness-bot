@@ -8,7 +8,8 @@ const setWeekGoalCommand = {
         .addStringOption(option => 
             option.setName('activity')
                 .setDescription('The activity you want to do')
-                .setRequired(true))
+                .setRequired(true)
+                .setMaxLength(70))
         .addIntegerOption(option => 
             option.setName('frequency')
                 .setDescription('How many times you want to do this activity this week')
