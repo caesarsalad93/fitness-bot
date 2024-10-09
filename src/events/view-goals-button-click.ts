@@ -2,6 +2,7 @@ import { Events, Interaction } from "discord.js";
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from 'drizzle-orm';
 import { weeklyUserGoals } from "../drizzle/schema.js";
+import { view } from "drizzle-orm/sqlite-core/view.js";
 
 function getCurrentWeekStart() {
   const now = new Date();
@@ -14,7 +15,7 @@ function formatDateForPostgres(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-const incrementButtonInteraction = {
+const viewGoalsButtonInteraction = {
   name: Events.InteractionCreate,
   async execute(interaction: Interaction) {
     if (!interaction.isButton()) return;
@@ -63,4 +64,4 @@ async function handleGoalIncrement(interaction: any) {
   });
 }
 
-export default incrementButtonInteraction;
+export default viewGoalsButtonInteraction;
