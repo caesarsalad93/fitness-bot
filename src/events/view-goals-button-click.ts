@@ -22,10 +22,47 @@ const viewGoalsButtonInteraction = {
 
     if (interaction.customId.startsWith("increment_")) {
       await handleGoalIncrement(interaction);
+    } else if (interaction.customId.startsWith("delete_")) {
+      await handleDelete(interaction);
     }
-    // Add other button handlers here if needed
   },
 };
+
+async function handleDelete(interaction: ButtonInteraction) {
+  const goalId = parseInt(interaction.customId.split("_")[1]);
+  const weekStart = getCurrentWeekStart();
+  const nextWeekStart = new Date(weekStart);
+  nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+
+  const weekStartStr = formatDateForPostgres(weekStart);
+  const nextWeekStartStr = formatDateForPostgres(nextWeekStart);
+
+  const [goal] = await db
+    .select()
+    .from(weeklyUserGoals)
+    .where(
+      and(
+        eq(weeklyUserGoals.goalId, goalId),
+        gte(weeklyUserGoals.weekStart, weekStartStr),
+        lt(weeklyUserGoals.weekStart, nextWeekStartStr)
+      )
+    );
+
+  if (!goal) {
+    await interaction.reply({
+      content: "Goal not found or not from the current week.",
+      ephemeral: true,
+    });
+    return;
+  }
+  // Delete the goal
+  await db.delete(weeklyUserGoals).where(eq(weeklyUserGoals.goalId, goalId));
+
+  await interaction.reply({
+    content: `Goal "${goal.activityName}" has been deleted.`,
+    ephemeral: true,
+  });
+}
 
 async function handleGoalIncrement(interaction: ButtonInteraction) {
   const goalId = parseInt(interaction.customId.split("_")[1]);

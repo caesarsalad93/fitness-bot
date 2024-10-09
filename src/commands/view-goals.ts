@@ -73,11 +73,16 @@ const viewGoals = {
       );
 
     // Create buttons for each goal
-    const rows = goals.map((goal) => {
+    const rows = goals.map((goal, index) => {
       const button = new ButtonBuilder()
         .setCustomId(`increment_${goal.goalId}`)
         .setLabel(`Increment ${goal.activityName}`)
         .setStyle(ButtonStyle.Primary);
+
+    const deleteButton = new ButtonBuilder ()
+        .setCustomId(`delete_${goal.goalId}`)
+        .setLabel(`Delete Goal${index + 1}`)
+        .setStyle(ButtonStyle.Danger);
 
       embed.addFields({
         name: goal.activityName,
@@ -85,7 +90,7 @@ const viewGoals = {
         inline: true,
       });
 
-      return new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+      return new ActionRowBuilder<ButtonBuilder>().addComponents(button, deleteButton);
     });
 
     await interaction.reply({ embeds: [embed], components: rows });
