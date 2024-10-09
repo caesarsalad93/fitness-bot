@@ -1,6 +1,6 @@
-import { Events, Interaction } from "discord.js";
+import { ButtonInteraction, Events, Interaction } from "discord.js";
 import { db } from "../drizzle/db.js";
-import { eq, and, gte, lt } from 'drizzle-orm';
+import { eq, and, gte, lt } from "drizzle-orm";
 import { weeklyUserGoals } from "../drizzle/schema.js";
 import { view } from "drizzle-orm/sqlite-core/view.js";
 
@@ -12,7 +12,7 @@ function getCurrentWeekStart() {
 }
 
 function formatDateForPostgres(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 }
 
 const viewGoalsButtonInteraction = {
@@ -20,15 +20,15 @@ const viewGoalsButtonInteraction = {
   async execute(interaction: Interaction) {
     if (!interaction.isButton()) return;
 
-    if (interaction.customId.startsWith('increment_')) {
+    if (interaction.customId.startsWith("increment_")) {
       await handleGoalIncrement(interaction);
     }
     // Add other button handlers here if needed
-  }
+  },
 };
 
-async function handleGoalIncrement(interaction: any) {
-  const goalId = parseInt(interaction.customId.split('_')[1]);
+async function handleGoalIncrement(interaction: ButtonInteraction) {
+  const goalId = parseInt(interaction.customId.split("_")[1]);
   const weekStart = getCurrentWeekStart();
   const nextWeekStart = new Date(weekStart);
   nextWeekStart.setDate(nextWeekStart.getDate() + 7);
@@ -37,7 +37,8 @@ async function handleGoalIncrement(interaction: any) {
   const nextWeekStartStr = formatDateForPostgres(nextWeekStart);
 
   // Fetch the goal, ensuring it's for the current week
-  const [goal] = await db.select()
+  const [goal] = await db
+    .select()
     .from(weeklyUserGoals)
     .where(
       and(
@@ -48,19 +49,23 @@ async function handleGoalIncrement(interaction: any) {
     );
 
   if (!goal) {
-    await interaction.reply({ content: 'Goal not found or not from the current week.', ephemeral: true });
+    await interaction.reply({
+      content: "Goal not found or not from the current week.",
+      ephemeral: true,
+    });
     return;
   }
 
   // Increment the progress
-  const updatedGoal = await db.update(weeklyUserGoals)
+  const updatedGoal = await db
+    .update(weeklyUserGoals)
     .set({ currentProgress: goal.currentProgress + 1 })
     .where(eq(weeklyUserGoals.goalId, goalId))
     .returning();
 
   await interaction.reply({
     content: `Progress updated for ${goal.activityName}! New progress: ${updatedGoal[0].currentProgress}/${goal.targetFrequency}`,
-    ephemeral: true
+    ephemeral: true,
   });
 }
 
