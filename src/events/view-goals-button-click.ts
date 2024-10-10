@@ -1,4 +1,4 @@
-import { ButtonInteraction, Events, Interaction } from "discord.js";
+import { ButtonInteraction, Events, Interaction, EmbedBuilder } from "discord.js";
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from "drizzle-orm";
 import { weeklyUserGoals } from "../drizzle/schema.js";
@@ -100,9 +100,28 @@ async function handleGoalIncrement(interaction: ButtonInteraction) {
     .where(eq(weeklyUserGoals.goalId, goalId))
     .returning();
 
-  await interaction.reply({
-    content: `Progress updated for ${goal.activityName}! New progress: ${updatedGoal[0].currentProgress}/${goal.targetFrequency}`,
-    ephemeral: true,
+  const previousEmbed = interaction.message.embeds[0];
+  
+  // Update only the specific field for the incremented goal
+  const updatedFields = previousEmbed.data.fields!.map(field => {
+    if (field.name === goal.activityName) {
+      return {
+        ...field,
+        value: `Progress: ${updatedGoal[0].currentProgress}/${goal.targetFrequency}`,
+      };
+    }
+    return field;
+  });
+
+  const updatedEmbed = EmbedBuilder.from(previousEmbed).setFields(updatedFields);
+  await interaction.update({
+    embeds: [updatedEmbed],
+    components: interaction.message.components,
+  })
+
+  await interaction.followUp({
+    content: `Goal "${goal.activityName}" progress updated to ${updatedGoal[0].currentProgress}/${goal.targetFrequency}`,
+    ephemeral: true
   });
 }
 
