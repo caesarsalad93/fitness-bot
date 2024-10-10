@@ -1,7 +1,7 @@
 import { ButtonInteraction, Events, Interaction, EmbedBuilder } from "discord.js";
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from "drizzle-orm";
-import { weeklyUserGoals } from "../drizzle/schema.js";
+import { weeklyUserGoals, users } from "../drizzle/schema.js";
 import { view } from "drizzle-orm/sqlite-core/view.js";
 
 function getCurrentWeekStart() {
@@ -14,6 +14,15 @@ function getCurrentWeekStart() {
 function formatDateForPostgres(date: Date): string {
   return date.toISOString().split("T")[0];
 }
+
+async function getUserByDiscordId(discordId: string) {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.discordId, discordId));
+  return user;
+}
+
 
 const viewGoalsButtonInteraction = {
   name: Events.InteractionCreate,
@@ -56,14 +65,15 @@ async function handleDelete(interaction: ButtonInteraction) {
     return;
   }
 
-    // Check if the user who clicked the button is the owner of the goal
-    if (goal.userId?.toString() !== interaction.user.id) {
-      await interaction.reply({
-        content: "You can only delete your own goals.",
-        ephemeral: true,
-      });
-      return;
-    }
+  const user = await getUserByDiscordId(interaction.user.id);
+
+  if (!user || user.userId !== goal.userId) {
+    await interaction.reply({
+      content: "You can only delete your own goals.",
+      ephemeral: true,
+    });
+    return;
+  }
   // Delete the goal
   await db.delete(weeklyUserGoals).where(eq(weeklyUserGoals.goalId, goalId));
 
@@ -102,14 +112,15 @@ async function handleGoalIncrement(interaction: ButtonInteraction) {
     return;
   }
 
-    // Check if the user who clicked the button is the owner of the goal
-    if (goal.userId?.toString() !== interaction.user.id) {
-      await interaction.reply({
-        content: "You can only update your own goals.",
-        ephemeral: true,
-      });
-      return;
-    }
+  const user = await getUserByDiscordId(interaction.user.id);
+
+  if (!user || user.userId !== goal.userId) {
+    await interaction.reply({
+      content: "You can only update your own goals.",
+      ephemeral: true,
+    });
+    return;
+  }
 
   // Increment the progress
   const updatedGoal = await db
