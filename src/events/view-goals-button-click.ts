@@ -55,6 +55,15 @@ async function handleDelete(interaction: ButtonInteraction) {
     });
     return;
   }
+
+    // Check if the user who clicked the button is the owner of the goal
+    if (goal.userId?.toString() !== interaction.user.id) {
+      await interaction.reply({
+        content: "You can only delete your own goals.",
+        ephemeral: true,
+      });
+      return;
+    }
   // Delete the goal
   await db.delete(weeklyUserGoals).where(eq(weeklyUserGoals.goalId, goalId));
 
@@ -92,6 +101,15 @@ async function handleGoalIncrement(interaction: ButtonInteraction) {
     });
     return;
   }
+
+    // Check if the user who clicked the button is the owner of the goal
+    if (goal.userId?.toString() !== interaction.user.id) {
+      await interaction.reply({
+        content: "You can only update your own goals.",
+        ephemeral: true,
+      });
+      return;
+    }
 
   // Increment the progress
   const updatedGoal = await db
