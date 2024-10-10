@@ -81,7 +81,7 @@ const viewGoals = {
 
     const deleteButton = new ButtonBuilder ()
         .setCustomId(`delete_${goal.goalId}`)
-        .setLabel(`Delete Goal${index + 1}`)
+        .setLabel(`Delete ${goal.activityName}`)
         .setStyle(ButtonStyle.Danger);
 
       embed.addFields({
