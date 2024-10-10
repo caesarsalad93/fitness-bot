@@ -6,6 +6,7 @@ import {
   ButtonStyle,
   EmbedBuilder,
   ChatInputCommandInteraction,
+  TextChannel,
 } from "discord.js";
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from "drizzle-orm";
@@ -23,6 +24,9 @@ function formatDateForPostgres(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
+// Store the last message ID for each user
+const lastMessageIds = new Map<string, string>();
+
 const viewGoals = {
   data: new SlashCommandBuilder()
     .setName("viewgoals")
@@ -36,6 +40,19 @@ const viewGoals = {
 
     const weekStartStr = formatDateForPostgres(weekStart);
     const nextWeekStartStr = formatDateForPostgres(nextWeekStart);
+
+    // Delete the previous message if it exists
+    const lastMessageId = lastMessageIds.get(discordId);
+    if (lastMessageId) {
+      try {
+        const channel = interaction.channel as TextChannel;
+        const message = await channel.messages.fetch(lastMessageId);
+        await message.delete();
+      } catch (error) {
+        console.error("Error deleting previous message:", error);
+        // Continue with the command even if deletion fails
+      }
+    }
 
     // Fetch user and their goals for the current week
     const user = await db
@@ -69,7 +86,9 @@ const viewGoals = {
       .setColor("#0099ff")
       .setTitle("Your Weekly Goals")
       .setDescription(
-        `Hello ${user[0].discordUsername}! Here are your goals for the week of ${weekStart.toDateString()}:`
+        `Hello ${
+          user[0].discordUsername
+        }! Here are your goals for the week of ${weekStart.toDateString()}:`
       );
 
     // Create buttons for each goal
@@ -79,7 +98,7 @@ const viewGoals = {
         .setLabel(`Increment ${goal.activityName}`)
         .setStyle(ButtonStyle.Primary);
 
-    const deleteButton = new ButtonBuilder ()
+      const deleteButton = new ButtonBuilder()
         .setCustomId(`delete_${goal.goalId}`)
         .setLabel(`Delete ${goal.activityName}`)
         .setStyle(ButtonStyle.Danger);
@@ -90,10 +109,19 @@ const viewGoals = {
         inline: true,
       });
 
-      return new ActionRowBuilder<ButtonBuilder>().addComponents(button, deleteButton);
+      return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        button,
+        deleteButton
+      );
     });
 
-    await interaction.reply({ embeds: [embed], components: rows });
+    const reply = await interaction.reply({
+      embeds: [embed],
+      components: rows,
+      fetchReply: true,
+    });
+
+    lastMessageIds.set(discordId, reply.id);
   },
 };
 
