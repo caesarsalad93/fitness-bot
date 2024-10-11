@@ -1,4 +1,9 @@
-import { ButtonInteraction, Events, Interaction, EmbedBuilder } from "discord.js";
+import {
+  ButtonInteraction,
+  Events,
+  Interaction,
+  EmbedBuilder,
+} from "discord.js";
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from "drizzle-orm";
 import { weeklyUserGoals, users } from "../drizzle/schema.js";
@@ -23,6 +28,12 @@ async function getUserByDiscordId(discordId: string) {
   return user;
 }
 
+async function markGoalAsCompleted(goalId: number) {
+  await db
+    .update(weeklyUserGoals)
+    .set({ isCompleted: true })
+    .where(eq(weeklyUserGoals.goalId, goalId));
+}
 
 const viewGoalsButtonInteraction = {
   name: Events.InteractionCreate,
@@ -129,10 +140,19 @@ async function handleGoalIncrement(interaction: ButtonInteraction) {
     .where(eq(weeklyUserGoals.goalId, goalId))
     .returning();
 
+  if (updatedGoal[0].currentProgress === goal.targetFrequency) {
+    await markGoalAsCompleted(goalId);
+
+    // Announce goal completion to the channel
+    const channel = interaction.channel;
+    if (channel && channel.isTextBased() && "send" in channel) {
+      await channel.send(`🎉 Congratulations ${interaction.user.username}! You've completed your goal "${goal.activityName}"!`);
+    }
+  }
   const previousEmbed = interaction.message.embeds[0];
-  
+
   // Update only the specific field for the incremented goal
-  const updatedFields = previousEmbed.data.fields!.map(field => {
+  const updatedFields = previousEmbed.data.fields!.map((field) => {
     if (field.name === goal.activityName) {
       return {
         ...field,
@@ -142,15 +162,16 @@ async function handleGoalIncrement(interaction: ButtonInteraction) {
     return field;
   });
 
-  const updatedEmbed = EmbedBuilder.from(previousEmbed).setFields(updatedFields);
+  const updatedEmbed =
+    EmbedBuilder.from(previousEmbed).setFields(updatedFields);
   await interaction.update({
     embeds: [updatedEmbed],
     components: interaction.message.components,
-  })
+  });
 
   await interaction.followUp({
     content: `Goal "${goal.activityName}" progress updated to ${updatedGoal[0].currentProgress}/${goal.targetFrequency}`,
-    ephemeral: true
+    ephemeral: true,
   });
 }
 
