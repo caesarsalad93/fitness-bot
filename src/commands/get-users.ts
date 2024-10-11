@@ -3,7 +3,7 @@ import {
   ChatInputCommandInteraction,
   EmbedBuilder,
 } from "discord.js";
-import { db, getUsers } from "../drizzle/db.js";
+import { db } from "../drizzle/db.js";
 import { getStartOfWeek, getEndOfWeek } from "../helpers/date-helpers.js";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { weeklyUserGoals, users } from "../drizzle/schema.js";
@@ -18,7 +18,6 @@ const command = {
       return date.toISOString().split("T")[0];
     }
     await interaction.deferReply();
-    const currentDate = new Date();
     const startOfWeek = getStartOfWeek();
     const endOfWeek = getEndOfWeek();
 
