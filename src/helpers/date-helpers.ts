@@ -7,7 +7,7 @@ export function getStartOfWeek(): Date {
   const now = new Date();
   const startOfWeek = new Date(now);
   startOfWeek.setHours(0, 0, 0, 0);
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
+  startOfWeek.setDate(now.getDate() - (now.getDay() + 6) % 7);
   return startOfWeek;
 }
 
