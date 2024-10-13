@@ -11,7 +11,7 @@ import {
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from "drizzle-orm";
 import { users, weeklyUserGoals } from "../drizzle/schema.js";
-import { getStartOfWeek } from "../helpers/date-helpers.js";
+import { getStartOfWeek, getEndOfWeek } from "../helpers/date-helpers.js";
 
 
 function formatDateForPostgres(date: Date): string {
@@ -29,11 +29,10 @@ const viewGoals = {
   async execute(interaction: ChatInputCommandInteraction) {
     const discordId = interaction.user.id;
     const weekStart = getStartOfWeek();
-    const nextWeekStart = new Date(weekStart);
-    nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+    const endOfWeek = getEndOfWeek();
 
     const weekStartStr = formatDateForPostgres(weekStart);
-    const nextWeekStartStr = formatDateForPostgres(nextWeekStart);
+    const endOfWeekStr = formatDateForPostgres(endOfWeek);
 
     // Delete the previous message if it exists
     const lastMessageId = lastMessageIds.get(discordId);
@@ -66,7 +65,7 @@ const viewGoals = {
         and(
           eq(weeklyUserGoals.userId, user[0].userId),
           gte(weeklyUserGoals.weekStart, weekStartStr),
-          lt(weeklyUserGoals.weekStart, nextWeekStartStr)
+          lt(weeklyUserGoals.weekStart, endOfWeekStr)
         )
       );
 
