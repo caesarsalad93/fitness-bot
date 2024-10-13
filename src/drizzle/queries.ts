@@ -1,6 +1,8 @@
 import { eq } from "drizzle-orm";
 import { db } from "./db.js";
 import { users, weeklyUserGoals } from "./schema.js";
+import { getStartOfWeek } from "../helpers/date-helpers.js";
+import { formatDateForPostgres } from "../helpers/formate-date-for-postgres.js";
 
 export async function setWeekGoal(
   discordId: string,
@@ -44,4 +46,34 @@ export async function setWeekGoal(
   }).returning();
 
   return newGoal[0];
+}
+
+export async function insertDummyData() {
+  // Insert a new user
+  const [newUser] = await db.insert(users).values({
+    discordUsername: 'JohnDoe',
+    discordId: '123456789',
+  }).returning({ userId: users.userId });
+
+  // Get the current week's start date
+  const currentWeekStart = getStartOfWeek();
+  const currentWeekStartStr = formatDateForPostgres(currentWeekStart);
+
+  // Insert two goals for the new user
+  await db.insert(weeklyUserGoals).values([
+    {
+      userId: newUser.userId,
+      weekStart: currentWeekStartStr,
+      activityName: 'Running',
+      targetFrequency: 3,
+    },
+    {
+      userId: newUser.userId,
+      weekStart: currentWeekStartStr,
+      activityName: 'Meditation',
+      targetFrequency: 5,
+    },
+  ]);
+
+  console.log('Dummy data inserted successfully');
 }
