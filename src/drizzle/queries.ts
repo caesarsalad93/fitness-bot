@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "./db.js";
 import { users, weeklyUserGoals } from "./schema.js";
 import { getStartOfWeek } from "../helpers/date-helpers.js";
-import { formatDateForPostgres } from "../helpers/formate-date-for-postgres.js";
+import { formatDateForPostgres } from "../helpers/format-date-for-postgres.js";
 
 export async function setWeekGoal(
   discordId: string,
