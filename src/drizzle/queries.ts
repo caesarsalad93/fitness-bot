@@ -33,10 +33,8 @@ export async function setWeekGoal(
       .where(eq(users.discordId, discordId));
   }
 
-  const weekStart = new Date();
-  weekStart.setHours(0, 0, 0, 0);
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
-  const formattedWeekStart = weekStart.toISOString();
+  const weekStart = getStartOfWeek();
+  const formattedWeekStart = formatDateForPostgres(weekStart);
 
   const newGoal = await db.insert(weeklyUserGoals).values({
     userId: user[0].userId,
