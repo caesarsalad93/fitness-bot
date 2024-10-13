@@ -11,14 +11,8 @@ import {
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from "drizzle-orm";
 import { users, weeklyUserGoals } from "../drizzle/schema.js";
+import { getStartOfWeek } from "../helpers/date-helpers.js";
 
-// Helper function to get the start of the current week
-function getCurrentWeekStart() {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  now.setDate(now.getDate() - now.getDay() + 1);
-  return now;
-}
 
 function formatDateForPostgres(date: Date): string {
   return date.toISOString().split("T")[0];
@@ -34,7 +28,7 @@ const viewGoals = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const discordId = interaction.user.id;
-    const weekStart = getCurrentWeekStart();
+    const weekStart = getStartOfWeek();
     const nextWeekStart = new Date(weekStart);
     nextWeekStart.setDate(nextWeekStart.getDate() + 7);
 
