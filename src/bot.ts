@@ -3,10 +3,7 @@ import path from "path";
 import {
   Client,
   Collection,
-  Events,
   GatewayIntentBits,
-  Interaction,
-  ChatInputCommandInteraction,
 } from "discord.js";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
