@@ -8,7 +8,6 @@ import {
   Interaction,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { scheduleWeeklyAnnouncement } from "./scheduler.js";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 
