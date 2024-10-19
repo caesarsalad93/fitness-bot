@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { Client } from 'discord.js';
 import announceWeeklyProgress from './commands/announce-weekly-progress.js';
+import getUsers from './commands/get-users.js';
 
 export function scheduleWeeklyAnnouncement(client: Client, channelId: string) {
   // Schedule the task to run every Sunday at 11:59 PM
@@ -18,6 +19,7 @@ export function scheduleWeeklyAnnouncement(client: Client, channelId: string) {
 
         // Execute the command
         await announceWeeklyProgress.execute(mockInteraction as any);
+        await getUsers.execute(mockInteraction as any);
       }
     } catch (error) {
       console.error('Error running scheduled announcement:', error);
