@@ -7,7 +7,7 @@ import {
 import { db } from "../drizzle/db.js";
 import { eq, and, gte, lt } from "drizzle-orm";
 import { weeklyUserGoals, users } from "../drizzle/schema.js";
-import { view } from "drizzle-orm/sqlite-core/view.js";
+import { getStartOfWeek, getEndOfWeek } from "../helpers/date-helpers.js";
 
 function getCurrentWeekStart() {
   const now = new Date();
@@ -96,12 +96,11 @@ async function handleDelete(interaction: ButtonInteraction) {
 
 async function handleGoalIncrement(interaction: ButtonInteraction) {
   const goalId = parseInt(interaction.customId.split("_")[1]);
-  const weekStart = getCurrentWeekStart();
-  const nextWeekStart = new Date(weekStart);
-  nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+  const weekStart = getStartOfWeek();
+  const endOfWeek = getEndOfWeek();
 
   const weekStartStr = formatDateForPostgres(weekStart);
-  const nextWeekStartStr = formatDateForPostgres(nextWeekStart);
+  const endOfWeekStr = formatDateForPostgres(endOfWeek);
 
   // Fetch the goal, ensuring it's for the current week
   const [goal] = await db
@@ -111,7 +110,7 @@ async function handleGoalIncrement(interaction: ButtonInteraction) {
       and(
         eq(weeklyUserGoals.goalId, goalId),
         gte(weeklyUserGoals.weekStart, weekStartStr),
-        lt(weeklyUserGoals.weekStart, nextWeekStartStr)
+        lt(weeklyUserGoals.weekStart, endOfWeekStr)
       )
     );
 
