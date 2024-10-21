@@ -24,5 +24,7 @@ export function scheduleWeeklyAnnouncement(client: Client, channelId: string) {
     } catch (error) {
       console.error('Error running scheduled announcement:', error);
     }
+  },  {
+    timezone: "America/Los_Angeles"
   });
 }
