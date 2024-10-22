@@ -12,7 +12,13 @@ const command = {
   data: new SlashCommandBuilder()
     .setName("announceweeklyprogress")
     .setDescription(
-      "Announces users who completed their goals and those who didn't"
+      "Announces users who completed their goals and those who didn't for a specific week(starting Monday)"
+    )
+    .addStringOption((option) =>
+      option
+        .setName("startdate")
+        .setDescription("Start date of the week (YYYY-MM-DD format)")
+        .setRequired(true)
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -21,62 +27,88 @@ const command = {
     }
 
     await interaction.deferReply();
-    const startOfWeek = getStartOfWeek();
-    const endOfWeek = getEndOfWeek();
+    const startDateStr = interaction.options.getString("startdate", true);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDateStr)) {
+      await interaction.editReply(
+        "Invalid date format. Please use YYYY-MM-DD."
+      );
+      return;
+    }
+
+    const startOfWeek = new Date(startDateStr);
+    if (isNaN(startOfWeek.getTime())) {
+      await interaction.editReply(
+        "Invalid date. Please provide a valid date in YYYY-MM-DD format."
+      );
+      return;
+    }
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
 
     const startOfWeekStr = formatDateForPostgres(startOfWeek);
     const endOfWeekStr = formatDateForPostgres(endOfWeek);
 
     try {
       const usersWithGoals = await db
-      .select({
-        userId: users.userId,
-        discordUsername: users.discordUsername,
-        totalGoals: sql`count(${weeklyUserGoals.goalId})`,
-        completedGoals: sql`sum(case when ${weeklyUserGoals.isCompleted} then 1 else 0 end)`,
-      })
-      .from(users)
-      .innerJoin(weeklyUserGoals, eq(users.userId, weeklyUserGoals.userId))
-      .where(
-        and(
-          gte(weeklyUserGoals.weekStart, startOfWeekStr),
-          lte(weeklyUserGoals.weekStart, endOfWeekStr)
+        .select({
+          userId: users.userId,
+          discordUsername: users.discordUsername,
+          totalGoals: sql`count(${weeklyUserGoals.goalId})`,
+          completedGoals: sql`sum(case when ${weeklyUserGoals.isCompleted} then 1 else 0 end)`,
+        })
+        .from(users)
+        .innerJoin(weeklyUserGoals, eq(users.userId, weeklyUserGoals.userId))
+        .where(
+          and(
+            gte(weeklyUserGoals.weekStart, startOfWeekStr),
+            lte(weeklyUserGoals.weekStart, endOfWeekStr)
+          )
         )
-      )
-      .groupBy(users.userId, users.discordUsername);
+        .groupBy(users.userId, users.discordUsername);
 
-    const DEPOSIT_AMOUNT = 10;
-    const totalUsers = usersWithGoals.length;
-    const totalDeposit = totalUsers * DEPOSIT_AMOUNT;
-    const usersWithAllGoalsCompleted = usersWithGoals.filter(user => user.totalGoals === user.completedGoals);
-    const completedUsers = usersWithAllGoalsCompleted.length;
-    const payoutPerUser = completedUsers > 0 ? totalDeposit / completedUsers : 0;
+      const DEPOSIT_AMOUNT = 10;
+      const totalUsers = usersWithGoals.length;
+      const totalDeposit = totalUsers * DEPOSIT_AMOUNT;
+      const usersWithAllGoalsCompleted = usersWithGoals.filter(
+        (user) => user.totalGoals === user.completedGoals
+      );
+      const completedUsers = usersWithAllGoalsCompleted.length;
+      const payoutPerUser =
+        completedUsers > 0 ? totalDeposit / completedUsers : 0;
 
-    const completedEmbed = new EmbedBuilder()
-      .setTitle("Users Who Completed All Their Goals This Week")
-      .setColor("#00FF00")
-      .setDescription(`Payout per user: $${payoutPerUser.toFixed(2)}`)
-      .setTimestamp();
+      const completedEmbed = new EmbedBuilder()
+        .setTitle("Users Who Completed All Their Goals This Week")
+        .setColor("#00FF00")
+        .setDescription(`Payout per user: $${payoutPerUser.toFixed(2)}`)
+        .setTimestamp();
 
-    const incompleteEmbed = new EmbedBuilder()
-      .setTitle("Users Who Have Not Completed All Their Goals This Week")
-      .setColor("#FF0000")
-      .setTimestamp();
+      const incompleteEmbed = new EmbedBuilder()
+        .setTitle("Users Who Have Not Completed All Their Goals This Week")
+        .setColor("#FF0000")
+        .setTimestamp();
 
-    usersWithGoals.forEach((user) => {
-      const embed = user.totalGoals === user.completedGoals ? completedEmbed : incompleteEmbed;
-      const payout = user.totalGoals === user.completedGoals ? payoutPerUser : 0;
-      embed.addFields({
-        name: user.discordUsername || `User ${user.userId}`,
-        value: `Completed ${user.completedGoals}/${user.totalGoals} goals | Payout: $${payout.toFixed(2)}`,
-        inline: false,
+      usersWithGoals.forEach((user) => {
+        const embed =
+          user.totalGoals === user.completedGoals
+            ? completedEmbed
+            : incompleteEmbed;
+        const payout =
+          user.totalGoals === user.completedGoals ? payoutPerUser : 0;
+        embed.addFields({
+          name: user.discordUsername || `User ${user.userId}`,
+          value: `Completed ${user.completedGoals}/${
+            user.totalGoals
+          } goals | Payout: $${payout.toFixed(2)}`,
+          inline: false,
+        });
       });
-    });
 
-    await interaction.editReply({
-      content: `Total payout to be distributed: $${totalDeposit.toFixed(2)}`,
-      embeds: [completedEmbed, incompleteEmbed],
-    });
+      await interaction.editReply({
+        content: `Weekly progress for ${startOfWeekStr} to ${endOfWeekStr}\nTotal payout to be distributed: $${totalDeposit.toFixed(
+          2
+        )}`,
+        embeds: [completedEmbed, incompleteEmbed],
+      });
     } catch (error) {
       console.error("Error announcing weekly progress:", error);
       await interaction.editReply(
