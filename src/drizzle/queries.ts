@@ -34,11 +34,10 @@ export async function setWeekGoal(
   }
 
   const weekStart = getStartOfWeek();
-  const formattedWeekStart = formatDateForPostgres(weekStart);
 
   const newGoal = await db.insert(weeklyUserGoals).values({
     userId: user[0].userId,
-    weekStart: formattedWeekStart,
+    weekStart,
     activityName,
     targetFrequency,
   }).returning();
@@ -54,8 +53,7 @@ export async function insertDummyData() {
   }).returning({ userId: users.userId });
 
   // Get the current week's start date
-  const currentWeekStart = getStartOfWeek();
-  const currentWeekStartStr = formatDateForPostgres(currentWeekStart);
+  const currentWeekStartStr = getStartOfWeek();
 
   // Insert two goals for the new user
   await db.insert(weeklyUserGoals).values([

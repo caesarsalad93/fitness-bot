@@ -3,12 +3,19 @@
  * 
  * @returns {Date} The Date object representing the start of the current week
  */
-export function getStartOfWeek(): Date {
-  const now = new Date();
-  const startOfWeek = new Date(now);
-  startOfWeek.setHours(0, 0, 0, 0);
-  startOfWeek.setDate(now.getDate() - (now.getDay() + 6) % 7);
-  return startOfWeek;
+export function getStartOfWeek(inputDate = new Date()) {
+  const date = new Date(inputDate);
+  
+  const currentDay = date.getDay();
+  const daysToMonday = currentDay === 0 
+      ? 6
+      : currentDay - 1;
+  
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - daysToMonday);
+  
+  // Format to YYYY-MM-DD
+  return date.toISOString().split('T')[0];
 }
 
 /**
@@ -16,10 +23,17 @@ export function getStartOfWeek(): Date {
  * 
  * @returns {Date} The Date object representing the end of the current week
  */
-export function getEndOfWeek(): Date {
-  const startOfWeek = getStartOfWeek();
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(endOfWeek.getDate() + 6);
-  endOfWeek.setHours(23, 59, 59, 999);
-  return endOfWeek;
+export function getEndOfWeek(inputDate = new Date()) {
+  const date = new Date(inputDate);
+  
+  const currentDay = date.getDay();
+  const daysToSunday = currentDay === 0 
+      ? 0
+      : 7 - currentDay;
+  
+  date.setHours(23, 59, 59, 999);
+  date.setDate(date.getDate() + daysToSunday);
+  
+  // Format to YYYY-MM-DD
+  return date.toISOString().split('T')[0];
 }

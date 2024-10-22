@@ -96,11 +96,8 @@ async function handleDelete(interaction: ButtonInteraction) {
 
 async function handleGoalIncrement(interaction: ButtonInteraction) {
   const goalId = parseInt(interaction.customId.split("_")[1]);
-  const weekStart = getStartOfWeek();
-  const endOfWeek = getEndOfWeek();
-
-  const weekStartStr = formatDateForPostgres(weekStart);
-  const endOfWeekStr = formatDateForPostgres(endOfWeek);
+  const weekStartStr = getStartOfWeek();
+  const endOfWeekStr = getEndOfWeek();
 
   // Fetch the goal, ensuring it's for the current week
   const [goal] = await db

@@ -28,11 +28,8 @@ const viewGoals = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const discordId = interaction.user.id;
-    const weekStart = getStartOfWeek();
-    const endOfWeek = getEndOfWeek();
-
-    const weekStartStr = formatDateForPostgres(weekStart);
-    const endOfWeekStr = formatDateForPostgres(endOfWeek);
+    const weekStartStr = getStartOfWeek();
+    const endOfWeekStr = getEndOfWeek();
 
     // Delete the previous message if it exists
     const lastMessageId = lastMessageIds.get(discordId);
@@ -81,7 +78,7 @@ const viewGoals = {
       .setDescription(
         `Hello ${
           user[0].discordUsername
-        }! Here are your goals for the week of ${weekStart.toDateString()}:`
+        }! Here are your goals for the week of ${weekStartStr}:`
       );
 
     // Create buttons for each goal

@@ -18,12 +18,8 @@ const command = {
       return date.toISOString().split("T")[0];
     }
     await interaction.deferReply();
-    const startOfWeek = getStartOfWeek();
-    const endOfWeek = getEndOfWeek();
-
-    const startOfWeekStr = formatDateForPostgres(startOfWeek);
-    const endOfWeekStr = formatDateForPostgres(endOfWeek);
-
+    const startOfWeekStr = getStartOfWeek();
+    const endOfWeekStr = getEndOfWeek();
 
     try {
         // Step 1: Query for users with goals in the current week
