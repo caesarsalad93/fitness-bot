@@ -50,7 +50,7 @@ const viewGoalsButtonInteraction = {
 
 async function handleDelete(interaction: ButtonInteraction) {
   const goalId = parseInt(interaction.customId.split("_")[1]);
-  const weekStart = getCurrentWeekStart();
+  const weekStart = getStartOfWeek();
   const nextWeekStart = new Date(weekStart);
   nextWeekStart.setDate(nextWeekStart.getDate() + 7);
 
@@ -96,8 +96,8 @@ async function handleDelete(interaction: ButtonInteraction) {
 
 async function handleGoalIncrement(interaction: ButtonInteraction) {
   const goalId = parseInt(interaction.customId.split("_")[1]);
-  const weekStartStr = getStartOfWeek();
-  const endOfWeekStr = getEndOfWeek();
+  const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
+  const endOfWeekStr = getEndOfWeek().toISOString().split('T')[0];
 
   // Fetch the goal, ensuring it's for the current week
   const [goal] = await db

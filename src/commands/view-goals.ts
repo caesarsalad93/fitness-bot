@@ -28,8 +28,8 @@ const viewGoals = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const discordId = interaction.user.id;
-    const weekStartStr = getStartOfWeek();
-    const endOfWeekStr = getEndOfWeek();
+    const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
+    const endOfWeekStr = getEndOfWeek().toISOString().split('T')[0];
 
     // Delete the previous message if it exists
     const lastMessageId = lastMessageIds.get(discordId);

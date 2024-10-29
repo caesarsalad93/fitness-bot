@@ -33,11 +33,11 @@ export async function setWeekGoal(
       .where(eq(users.discordId, discordId));
   }
 
-  const weekStart = getStartOfWeek();
+  const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
 
   const newGoal = await db.insert(weeklyUserGoals).values({
     userId: user[0].userId,
-    weekStart,
+    weekStart: weekStartStr,
     activityName,
     targetFrequency,
   }).returning();
@@ -53,7 +53,7 @@ export async function insertDummyData() {
   }).returning({ userId: users.userId });
 
   // Get the current week's start date
-  const currentWeekStartStr = getStartOfWeek();
+  const currentWeekStartStr = getStartOfWeek().toISOString().split('T')[0];
 
   // Insert two goals for the new user
   await db.insert(weeklyUserGoals).values([
