@@ -17,6 +17,7 @@ const command = {
     await interaction.deferReply();
     const startOfWeekStr = getStartOfWeek().toLocaleDateString("en-CA");
     const endOfWeekStr = getEndOfWeek().toLocaleDateString("en-CA");
+    console.log(`start of week str: ${startOfWeekStr}, end of week str: ${endOfWeekStr}`)
 
     try {
       // Step 1: Query for users with goals in the current week
