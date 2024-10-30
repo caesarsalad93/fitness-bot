@@ -35,18 +35,9 @@ const command = {
       return;
     }
 
-    const startOfWeek = new Date(startDateStr);
-    if (isNaN(startOfWeek.getTime())) {
-      await interaction.editReply(
-        "Invalid date. Please provide a valid date in YYYY-MM-DD format."
-      );
-      return;
-    }
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
+    const endOfWeekStr = getEndOfWeek().toISOString().split('T')[0];
 
-    const startOfWeekStr = formatDateForPostgres(startOfWeek);
-    const endOfWeekStr = formatDateForPostgres(endOfWeek);
 
     try {
       const usersWithGoals = await db
@@ -60,7 +51,7 @@ const command = {
         .innerJoin(weeklyUserGoals, eq(users.userId, weeklyUserGoals.userId))
         .where(
           and(
-            gte(weeklyUserGoals.weekStart, startOfWeekStr),
+            gte(weeklyUserGoals.weekStart, weekStartStr),
             lte(weeklyUserGoals.weekStart, endOfWeekStr)
           )
         )
@@ -104,7 +95,7 @@ const command = {
       });
 
       await interaction.editReply({
-        content: `Weekly progress for ${startOfWeekStr} to ${endOfWeekStr}\nTotal payout to be distributed: $${totalDeposit.toFixed(
+        content: `Weekly progress for ${weekStartStr} to ${endOfWeekStr}\nTotal payout to be distributed: $${totalDeposit.toFixed(
           2
         )}`,
         embeds: [completedEmbed, incompleteEmbed],
