@@ -13,11 +13,6 @@ import { eq, and, gte, lt } from "drizzle-orm";
 import { users, weeklyUserGoals } from "../drizzle/schema.js";
 import { getStartOfWeek, getEndOfWeek } from "../helpers/date-helpers.js";
 
-
-function formatDateForPostgres(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
-
 // Store the last message ID for each user
 const lastMessageIds = new Map<string, string>();
 
@@ -28,8 +23,8 @@ const viewGoals = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const discordId = interaction.user.id;
-    const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
-    const endOfWeekStr = getEndOfWeek().toISOString().split('T')[0];
+    const weekStartStr = getStartOfWeek().toLocaleDateString("en-CA");
+    const endOfWeekStr = getEndOfWeek().toLocaleDateString("en-CA");
 
     // Delete the previous message if it exists
     const lastMessageId = lastMessageIds.get(discordId);
