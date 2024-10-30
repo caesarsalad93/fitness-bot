@@ -34,9 +34,9 @@ const command = {
       );
       return;
     }
-
-    const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
-    const endOfWeekStr = getEndOfWeek().toISOString().split('T')[0];
+    const startDate = new Date(startDateStr);
+    const weekStartStr = getStartOfWeek(startDate).toISOString().split('T')[0];
+    const endOfWeekStr = getEndOfWeek(startDate).toISOString().split('T')[0];
 
 
     try {
