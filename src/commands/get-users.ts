@@ -14,12 +14,9 @@ const command = {
     .setDescription("Gets all users"),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    function formatDateForPostgres(date: Date): string {
-      return date.toISOString().split("T")[0];
-    }
     await interaction.deferReply();
-    const startOfWeekStr = getStartOfWeek().toISOString().split("T")[0];
-    const endOfWeekStr = getEndOfWeek().toISOString().split("T")[0];
+    const startOfWeekStr = getStartOfWeek().toLocaleDateString("en-CA");
+    const endOfWeekStr = getEndOfWeek().toLocaleDateString("en-CA");
 
     try {
       // Step 1: Query for users with goals in the current week
@@ -46,6 +43,7 @@ const command = {
       }
 
       const currentDate = new Date();
+      console.log('Current Date:', currentDate);
       const endOfWeekDate = getEndOfWeek();
       const timeLeftInMs = endOfWeekDate.getTime() - currentDate.getTime();
       const hoursLeft = Math.floor(timeLeftInMs / (1000 * 60 * 60));
