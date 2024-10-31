@@ -43,10 +43,10 @@ const command = {
         return;
       }
 
-      const currentDate = new Date();
+      const currentDate = new Date().toLocaleString(); // Updated to show locale time
       console.log('Current Date:', currentDate);
-      const endOfWeekDate = getEndOfWeek();
-      const timeLeftInMs = endOfWeekDate.getTime() - currentDate.getTime();
+      const endOfWeekDate = getEndOfWeek().toLocaleString(); // Updated to show locale time
+      const timeLeftInMs = new Date(endOfWeekDate).getTime() - new Date(currentDate).getTime(); // Adjusted to calculate time difference
       const hoursLeft = Math.floor(timeLeftInMs / (1000 * 60 * 60));
       const minutesLeft = Math.floor(
         (timeLeftInMs % (1000 * 60 * 60)) / (1000 * 60)
