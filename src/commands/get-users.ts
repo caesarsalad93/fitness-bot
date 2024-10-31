@@ -43,10 +43,14 @@ const command = {
         return;
       }
 
-      const currentDate = new Date().toLocaleString(); // Updated to show locale time
+      const currentDate = new Intl.DateTimeFormat("en-US", { 
+        timeZone: "America/Los_Angeles" 
+      }).format(new Date()); // Updated to show date in California time zone
       console.log('Current Date:', currentDate);
-      const endOfWeekDate = getEndOfWeek().toLocaleString(); // Updated to show locale time
-      const timeLeftInMs = new Date(endOfWeekDate).getTime() - new Date(currentDate).getTime(); // Adjusted to calculate time difference
+      const endOfWeekDate = new Intl.DateTimeFormat("en-US", { 
+        timeZone: "America/Los_Angeles" 
+      }).format(getEndOfWeek()); // Updated to show date in California time zone
+      const timeLeftInMs = new Date(endOfWeekDate).getTime() - new Date(currentDate).getTime(); // This will now work correctly with California time zone
       const hoursLeft = Math.floor(timeLeftInMs / (1000 * 60 * 60));
       const minutesLeft = Math.floor(
         (timeLeftInMs % (1000 * 60 * 60)) / (1000 * 60)

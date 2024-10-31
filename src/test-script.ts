@@ -1,4 +1,10 @@
-import { getUsers } from "./drizzle/db.js";
-
-const dummyUsers = await getUsers();
-console.log(dummyUsers);
+import { getEndOfWeek } from "./helpers/date-helpers.js";
+const endOfWeekDate = getEndOfWeek();
+const time = new Date();
+console.log("Local end of week:", endOfWeekDate.toString());
+console.log("UTC end of week:", endOfWeekDate.toUTCString());
+console.log("ISO end of week:", endOfWeekDate.toISOString());
+console.log("current time:", time);
+console.log("current time to locale String", time.toLocaleString());
+console.log("current time to locale date string", time.toLocaleDateString());
+console.log("current time to locale time string", time.toLocaleTimeString());
