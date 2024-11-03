@@ -4,7 +4,7 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import { db } from "../drizzle/db.js";
-import { getStartOfWeek, getEndOfWeek } from "../helpers/date-helpers.js";
+import { getStartOfWeek, getEndOfWeek, getNextMonday, getTimeLeftInWeek } from "../helpers/date-helpers.js";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { weeklyUserGoals, users } from "../drizzle/schema.js";
 
@@ -42,20 +42,7 @@ const command = {
         );
         return;
       }
-
-      const currentDate = new Intl.DateTimeFormat("en-US", { 
-        timeZone: "America/Los_Angeles" 
-      }).format(new Date()); // Updated to show date in California time zone
-      console.log('Current Date:', currentDate);
-      const endOfWeekDate = new Intl.DateTimeFormat("en-US", { 
-        timeZone: "America/Los_Angeles" 
-      }).format(getEndOfWeek()); // Updated to show date in California time zone
-      const timeLeftInMs = new Date(endOfWeekDate).getTime() - new Date(currentDate).getTime(); // This will now work correctly with California time zone
-      const hoursLeft = Math.floor(timeLeftInMs / (1000 * 60 * 60));
-      const minutesLeft = Math.floor(
-        (timeLeftInMs % (1000 * 60 * 60)) / (1000 * 60)
-      );
-      const timeLeftMessage = `Time left in the week: ${hoursLeft} hours and ${minutesLeft} minutes.`;
+      const { hoursLeft, minutesLeft, timeLeftMessage } = getTimeLeftInWeek();
 
       const embed = new EmbedBuilder()
         .setTitle("Users with Goals This Week")

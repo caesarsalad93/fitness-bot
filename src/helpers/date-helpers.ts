@@ -31,3 +31,48 @@ export function getEndOfWeek(inputDate = new Date()) {
 
   return date;
 }
+
+export function getNextMonday() {
+  // Get current date in Pacific time
+  const pacificTime = new Date().toLocaleString("en-US", {
+    timeZone: "America/Los_Angeles"
+  });
+  const currentDate = new Date(pacificTime);
+  
+  // Calculate days until next Monday
+  const daysUntilMonday = (8 - currentDate.getDay()) % 7;
+  
+  // Create date for next Monday at midnight Pacific time
+  const nextMonday = new Date(currentDate);
+  nextMonday.setDate(currentDate.getDate() + daysUntilMonday);
+  nextMonday.setHours(0, 0, 0, 0);
+  
+  return nextMonday;
+}
+
+export function getTimeLeftInWeek() {
+  // Get current time in Pacific
+  const pacificTime = new Date().toLocaleString("en-US", {
+    timeZone: "America/Los_Angeles"
+  });
+  const currentDate = new Date(pacificTime);
+  
+  // Get next Monday midnight
+  const nextMonday = getNextMonday();
+  
+  // Calculate time difference in milliseconds
+  const timeLeftInMs = nextMonday.getTime() - currentDate.getTime();
+  
+  // Convert to hours and minutes
+  const hoursLeft = Math.floor(timeLeftInMs / (1000 * 60 * 60));
+  const minutesLeft = Math.floor((timeLeftInMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  // Format message
+  const timeLeftMessage = `Time left in the week: ${hoursLeft} hours and ${minutesLeft} minutes.`;
+  
+  return {
+    hoursLeft,
+    minutesLeft,
+    timeLeftMessage
+  };
+}
