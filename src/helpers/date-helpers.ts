@@ -28,14 +28,12 @@ export function getEndOfWeek(date = new Date()) {
   // Convert Date object to DateTime in Pacific Time
   const pacificDate = DateTime.fromJSDate(date, { zone: 'America/Los_Angeles' });
   
-  // Get to Monday by subtracting days
-  const daysToSubtract = pacificDate.weekday === 7 ? 6 : pacificDate.weekday - 1;
+  // Calculate days until next Sunday (if today is Sunday, we want today)
+  const daysToAdd = pacificDate.weekday === 7 ? 0 : 7 - pacificDate.weekday;
   
-  // Get to Monday then add 6 days to get to Sunday and set to end of day
   return pacificDate
-    .minus({ days: daysToSubtract }) // Get to Monday
-    .plus({ days: 6 }) // Add 6 days to get to Sunday
-    .endOf('day') // Set to last second of the day
+    .plus({ days: daysToAdd })
+    .endOf('day')
     .toJSDate();
 }
 
