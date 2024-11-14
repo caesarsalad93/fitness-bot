@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 import { db } from "../drizzle/db.js";
 import { getStartOfWeek, getEndOfWeek, getNextMonday, getTimeLeftInWeek } from "../helpers/date-helpers.js";
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, lt } from "drizzle-orm";
 import { weeklyUserGoals, users } from "../drizzle/schema.js";
 
 const command = {
