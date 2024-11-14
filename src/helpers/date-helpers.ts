@@ -7,14 +7,12 @@
 import { DateTime } from 'luxon';
 
 export function getStartOfWeek(date = new Date()) {
-  // Convert Date object to DateTime in Pacific Time
-  const pacificDate = DateTime.fromJSDate(date, { zone: 'America/Los_Angeles' });
+  // Explicitly handle the input date as UTC and convert to Pacific time
+  const pacificDate = DateTime.fromJSDate(date)
+    .setZone('America/Los_Angeles', { keepLocalTime: true });
   
-  // Get to Monday by subtracting days
-  // weekday is 1-7, where 1 is Monday
   const daysToSubtract = pacificDate.weekday === 7 ? 6 : pacificDate.weekday - 1;
   
-  // Subtract days and format to yyyy-MM-dd
   return pacificDate
     .minus({ days: daysToSubtract })
     .startOf('day')
