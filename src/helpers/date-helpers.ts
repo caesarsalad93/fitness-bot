@@ -26,10 +26,11 @@ export function getStartOfWeek(date = new Date()) {
  */
 export function getEndOfWeek(date = new Date()) {
   // Convert Date object to DateTime in Pacific Time
-  const pacificDate = DateTime.fromJSDate(date, { zone: 'America/Los_Angeles' });
+  const pacificDate = DateTime.fromJSDate(date)
+    .setZone('America/Los_Angeles', { keepLocalTime: true });
   
-  // Calculate days until next Sunday (if today is Sunday, we want today)
-  const daysToAdd = pacificDate.weekday === 7 ? 0 : 7 - pacificDate.weekday;
+  // Calculate days until Sunday (if today is Monday, we need 6 days)
+  const daysToAdd = 7 - pacificDate.weekday;
   
   return pacificDate
     .plus({ days: daysToAdd })
