@@ -31,7 +31,7 @@ const command = {
         .where(
           and(
             gte(weeklyUserGoals.weekStart, startOfWeekStr),
-            lte(weeklyUserGoals.weekStart, endOfWeekStr)
+            lt(weeklyUserGoals.weekStart, endOfWeekStr)
           )
         )
         .groupBy(users.userId, users.discordUsername);
@@ -63,7 +63,7 @@ const command = {
             and(
               eq(weeklyUserGoals.userId, user.userId),
               gte(weeklyUserGoals.weekStart, startOfWeekStr),
-              lte(weeklyUserGoals.weekStart, endOfWeekStr)
+              lt(weeklyUserGoals.weekStart, endOfWeekStr)
             )
           );
 
