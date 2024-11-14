@@ -35,9 +35,12 @@ const command = {
       return;
     }
     const startDate = new Date(startDateStr);
-    const weekStartStr = getStartOfWeek(startDate).toISOString().split('T')[0];
-    const endOfWeekStr = getEndOfWeek(startDate).toISOString().split('T')[0];
+    const weekStartStr = getStartOfWeek(startDate).toISOString().split("T")[0];
+    const endOfWeekStr = getEndOfWeek(startDate).toISOString().split("T")[0];
 
+    console.log("Start Date:", startDate);
+    console.log("Week Start:", weekStartStr);
+    console.log("End of Week:", endOfWeekStr);
 
     try {
       const usersWithGoals = await db
