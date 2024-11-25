@@ -9,20 +9,25 @@ import { DateTime } from 'luxon';
 export function getStartOfWeek(date = new Date()) {
   console.log('Input date:', date);
   
-  // Get current time in Pacific
-  const pacificTime = date.toLocaleString("en-US", {
-    timeZone: "America/Los_Angeles",
-  });
-  console.log('Pacific time string:', pacificTime);
+  let currentDate;
   
-  const currentDate = new Date(pacificTime);
+  // Only do Pacific conversion if it's the default current time
+  if (date === new Date()) {
+    const pacificTime = date.toLocaleString("en-US", {
+      timeZone: "America/Los_Angeles",
+    });
+    console.log('Pacific time string:', pacificTime);
+    currentDate = new Date(pacificTime);
+  } else {
+    currentDate = date;
+  }
   console.log('Current date after conversion:', currentDate);
 
   // Calculate days to subtract to get to Monday
   const daysToSubtract = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
   console.log('Days to subtract:', daysToSubtract);
 
-  // Create date for Monday at midnight Pacific time
+  // Create date for Monday at midnight
   const monday = new Date(currentDate);
   monday.setDate(currentDate.getDate() - daysToSubtract);
   monday.setHours(0, 0, 0, 0);
