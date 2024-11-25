@@ -7,16 +7,21 @@
 import { DateTime } from 'luxon';
 
 export function getStartOfWeek(date = new Date()) {
-  // Explicitly handle the input date as UTC and convert to Pacific time
-  const pacificDate = DateTime.fromJSDate(date)
-    .setZone('America/Los_Angeles', { keepLocalTime: true });
-  
-  const daysToSubtract = pacificDate.weekday === 7 ? 6 : pacificDate.weekday - 1;
-  
-  return pacificDate
-    .minus({ days: daysToSubtract })
-    .startOf('day')
-    .toJSDate();
+  // Get current time in Pacific
+  const pacificTime = new Date().toLocaleString("en-US", {
+    timeZone: "America/Los_Angeles",
+  });
+  const currentDate = new Date(pacificTime);
+
+  // Calculate days to subtract to get to Monday
+  const daysToSubtract = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
+
+  // Create date for Monday at midnight Pacific time
+  const monday = new Date(currentDate);
+  monday.setDate(currentDate.getDate() - daysToSubtract);
+  monday.setHours(0, 0, 0, 0);
+
+  return monday;
 }
 /**
  * Calculates the end date of the current week (Sunday at 23:59:59.999) in Pacific Time.
