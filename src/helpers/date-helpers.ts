@@ -8,7 +8,7 @@ import { DateTime } from 'luxon';
 
 export function getStartOfWeek(date = new Date()) {
   // Get current time in Pacific
-  const pacificTime = new Date().toLocaleString("en-US", {
+  const pacificTime = date.toLocaleString("en-US", {
     timeZone: "America/Los_Angeles",
   });
   const currentDate = new Date(pacificTime);
