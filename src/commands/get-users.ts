@@ -15,8 +15,8 @@ const command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
-    const startOfWeekStr = getStartOfWeek().toLocaleDateString("en-CA");
-    const endOfWeekStr = getEndOfWeek().toLocaleDateString("en-CA");
+    const startOfWeekStr = getStartOfWeek().toISOString().split('T')[0];
+    const endOfWeekStr = getEndOfWeek().toISOString().split('T')[0];
     console.log(`start of week str: ${startOfWeekStr}, end of week str: ${endOfWeekStr}`)
 
     try {
