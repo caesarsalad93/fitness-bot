@@ -12,7 +12,7 @@ export function getStartOfWeek(date = new Date()) {
   let currentDate;
   
   // Only do Pacific conversion if it's the default current time
-  if (date === new Date()) {
+  if (date.getTime() === new Date().getTime()) {
     const pacificTime = date.toLocaleString("en-US", {
       timeZone: "America/Los_Angeles",
     });
