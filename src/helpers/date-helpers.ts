@@ -6,34 +6,24 @@
  */
 import { DateTime } from 'luxon';
 
-export function getStartOfWeek(date = new Date()) {
-  console.log('Input date:', date);
-  
-  let currentDate;
-  
-  // Only do Pacific conversion if it's the default current time
-  if (date.getTime() === new Date().getTime()) {
-    const pacificTime = date.toLocaleString("en-US", {
-      timeZone: "America/Los_Angeles",
-    });
-    console.log('Pacific time string:', pacificTime);
-    currentDate = new Date(pacificTime);
-  } else {
-    currentDate = date;
+export function getStartOfWeek(date?: Date, timezone = 'America/Los_Angeles') {
+  // If no date provided, use current moment
+  if (!date) {
+    return DateTime.now()
+      .setZone(timezone)
+      .startOf('week')
+      .set({ weekday: 1 })
+      .startOf('day')
+      .toJSDate();
   }
-  console.log('Current date after conversion:', currentDate);
-
-  // Calculate days to subtract to get to Monday
-  const daysToSubtract = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
-  console.log('Days to subtract:', daysToSubtract);
-
-  // Create date for Monday at midnight
-  const monday = new Date(currentDate);
-  monday.setDate(currentDate.getDate() - daysToSubtract);
-  monday.setHours(0, 0, 0, 0);
-  console.log('Final monday date:', monday);
-
-  return monday;
+  
+  // For provided dates, convert that moment to target timezone
+  return DateTime.fromJSDate(date)
+    .setZone(timezone)
+    .startOf('week')
+    .set({ weekday: 1 })
+    .startOf('day')
+    .toJSDate();
 }
 /**
  * Calculates the end date of the current week (Sunday at 23:59:59.999) in Pacific Time.
