@@ -13,6 +13,8 @@ export const users = pgTable("fb_users", {
     userId: serial("user_id").primaryKey(),
     discordUsername: varchar("discord_username"),
     discordId: varchar("discord_id"),
+    balance: integer("balance").default(0).notNull(),
+    timezone: varchar("timezone").default("America/Los_Angeles"),
     createdAt: timestamp("created_at").defaultNow(),
 });
 
