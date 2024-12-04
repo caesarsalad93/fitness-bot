@@ -22,6 +22,13 @@
       "when": 1733251369261,
       "tag": "0002_black_starjammers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1733283649454,
+      "tag": "0003_flaky_toro",
+      "breakpoints": true
     }
   ]
 }

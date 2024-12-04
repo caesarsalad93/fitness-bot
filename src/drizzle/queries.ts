@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "./db.js";
-import { users, weeklyUserGoals, implementationIntentions } from "./schema.js";
+import { users, weeklyUserGoals, weeklyImplementationIntentions } from "./schema.js";
 import { getStartOfWeek } from "../helpers/date-helpers.js";
 import { formatDateForPostgres } from "../helpers/format-date-for-postgres.js";
 
@@ -79,16 +79,13 @@ export async function setImplementationIntention(
 
   // Insert the new implementation intention
   const newII = await db
-    .insert(implementationIntentions)
+    .insert(weeklyImplementationIntentions)
     .values({
       userId: user[0].userId,
-      discordId,
-      discordUsername,
       behavior,
       time,
       location,
       weekStart: weekStartStr,
-      createdAt: new Date(),
     })
     .returning();
 
