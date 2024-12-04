@@ -37,3 +37,18 @@ export const weeklyUserGoals = pgTable("fb_weekly_user_goals", {
 
 export type WeeklyUserGoal = typeof weeklyUserGoals.$inferSelect;
 export type NewWeeklyUserGoal = typeof weeklyUserGoals.$inferInsert;
+
+export const weeklyImplementationIntentions = pgTable("fb_weekly_implementation_intentions", {
+    intentionId: serial("intention_id").primaryKey(),
+    userId: integer("user_id").references(() => users.userId),
+    weekStart: date("week_start").notNull(),
+    behavior: varchar("behavior").notNull(),
+    time: varchar("time").notNull(),
+    location: varchar("location").notNull(),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    lastUpdated: timestamp("last_updated").notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export type WeeklyImplementationIntention = typeof weeklyImplementationIntentions.$inferSelect;
+export type NewWeeklyImplementationIntention = typeof weeklyImplementationIntentions.$inferInsert;

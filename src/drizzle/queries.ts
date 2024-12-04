@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "./db.js";
-import { users, weeklyUserGoals } from "./schema.js";
+import { users, weeklyUserGoals, implementationIntentions } from "./schema.js";
 import { getStartOfWeek } from "../helpers/date-helpers.js";
 import { formatDateForPostgres } from "../helpers/format-date-for-postgres.js";
 
@@ -43,6 +43,56 @@ export async function setWeekGoal(
   }).returning();
 
   return newGoal[0];
+}
+
+export async function setImplementationIntention(
+  discordId: string,
+  discordUsername: string,
+  behavior: string,
+  time: string,
+  location: string
+) {
+  // Try to get the user
+  let user = await db
+    .select()
+    .from(users)
+    .where(eq(users.discordId, discordId))
+    .limit(1);
+
+  if (user.length === 0) {
+    const newUser = await db
+      .insert(users)
+      .values({
+        discordId,
+        discordUsername,
+      })
+      .returning();
+    user = newUser;
+  } else {
+    await db
+      .update(users)
+      .set({ discordUsername })
+      .where(eq(users.discordId, discordId));
+  }
+
+  const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
+
+  // Insert the new implementation intention
+  const newII = await db
+    .insert(implementationIntentions)
+    .values({
+      userId: user[0].userId,
+      discordId,
+      discordUsername,
+      behavior,
+      time,
+      location,
+      weekStart: weekStartStr,
+      createdAt: new Date(),
+    })
+    .returning();
+
+  return newII[0];
 }
 
 export async function insertDummyData() {
