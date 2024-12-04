@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { setImplementationIntention } from '../drizzle/queries.js'; // You'll need to create this query
+import { setImplementationIntention } from '../drizzle/queries.js';
 
 const setIICommand = {
     data: new SlashCommandBuilder()
@@ -32,7 +32,7 @@ const setIICommand = {
             const newII = await setImplementationIntention(discordId, discordUsername, behavior, time, location);
             await interaction.reply(
                 `Implementation intention set! ✨\n` +
-                `I will ${behavior} at ${time} in ${location}.`
+                `"I will ${behavior} at ${time} in ${location}."`
             );
         } catch (error) {
             console.error('Error setting implementation intention:', error);
