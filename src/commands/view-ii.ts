@@ -77,7 +77,7 @@ import {
       const rows = intentions.map((intention) => {
         const completeButton = new ButtonBuilder()
           .setCustomId(`complete_ii_${intention.intentionId}`)
-          .setLabel(`Mark Complete`)
+          .setLabel(`Mark Complete (${intention.behavior}" @ ${intention.time} in ${intention.location})`)
           .setStyle(intention.isCompleted ? ButtonStyle.Success : ButtonStyle.Primary)
           .setDisabled(intention.isCompleted);
   
