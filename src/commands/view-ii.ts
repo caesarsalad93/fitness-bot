@@ -24,6 +24,8 @@ import {
       const discordId = interaction.user.id;
       const weekStartStr = getStartOfWeek().toLocaleDateString("en-CA");
       const endOfWeekStr = getEndOfWeek().toLocaleDateString("en-CA");
+
+      console.log('Date range:', { weekStartStr, endOfWeekStr });
   
       // Delete the previous message if it exists
       const lastMessageId = lastMessageIds.get(discordId);
@@ -36,6 +38,9 @@ import {
           console.error("Error deleting previous message:", error);
         }
       }
+
+      // Add logging before and after user query
+      console.log('Querying database for user with discord ID:', discordId);
   
       // Fetch user and their implementation intentions for the current week
       const user = await db
@@ -43,11 +48,16 @@ import {
         .from(users)
         .where(eq(users.discordId, discordId))
         .limit(1);
+
+      console.log(`User: ${user}`);
   
       if (user.length === 0) {
         await interaction.reply("You have not set any implementation intentions yet.");
         return;
       }
+
+      // Add logging before and after intentions query
+      console.log('Querying intentions for user:', user[0].userId);
   
       const intentions = await db
         .select()
@@ -59,6 +69,8 @@ import {
             lt(weeklyImplementationIntentions.weekStart, endOfWeekStr)
           )
         );
+
+      console.log('Intentions query result:', JSON.stringify(intentions, null, 2));
   
       if (intentions.length === 0) {
         await interaction.reply("You have not set any implementation intentions for this week.");
