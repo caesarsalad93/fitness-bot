@@ -84,12 +84,14 @@ import {
         .setDescription(
           `Hello ${user[0].discordUsername}! Here are your implementation intentions for the week of ${weekStartStr}:`
         );
+
   
       // Create buttons for each implementation intention
       const rows = intentions.map((intention) => {
+        const truncatedLabel = `✓ (${intention.behavior} at ${intention.time} in ${intention.location})`.substring(0, 80);
         const completeButton = new ButtonBuilder()
           .setCustomId(`complete_ii_${intention.intentionId}`)
-          .setLabel(`Mark Complete (${intention.behavior} at ${intention.time} in ${intention.location})`)
+          .setLabel(truncatedLabel)
           .setStyle(intention.isCompleted ? ButtonStyle.Success : ButtonStyle.Primary)
           .setDisabled(intention.isCompleted);
   
