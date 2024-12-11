@@ -49,7 +49,7 @@ import {
         .where(eq(users.discordId, discordId))
         .limit(1);
 
-      console.log(`User: ${user}`);
+      console.log(`User: ${user[0].discordUsername}`);
   
       if (user.length === 0) {
         await interaction.reply("You have not set any implementation intentions yet.");
