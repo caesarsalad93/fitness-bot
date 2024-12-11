@@ -86,29 +86,41 @@ import {
         );
 
   
-      // Create buttons for each implementation intention
-      const rows = intentions.map((intention) => {
-        const truncatedLabel = `✓ (${intention.behavior} at ${intention.time} in ${intention.location})`.substring(0, 80);
-        const completeButton = new ButtonBuilder()
-          .setCustomId(`complete_ii_${intention.intentionId}`)
-          .setLabel(truncatedLabel)
-          .setStyle(intention.isCompleted ? ButtonStyle.Success : ButtonStyle.Primary)
-          .setDisabled(intention.isCompleted);
+             // Create buttons for each implementation intention
+             const buttons = intentions.map((intention) => {
+              const truncatedLabel = `✓ (${intention.behavior} at ${intention.time} in ${intention.location})`.substring(0, 80);
+              
+              // Add field to embed
+              embed.addFields({
+                  name: intention.isCompleted ? `✅ ${intention.behavior}` : intention.behavior,
+                  value: `"I will ${intention.behavior} at ${intention.time} in ${intention.location}"`,
+                  inline: false,
+              });
   
-        embed.addFields({
-          name: intention.isCompleted ? `✅ ${intention.behavior}` : intention.behavior,
-          value: `"I will ${intention.behavior} at ${intention.time} in ${intention.location}"`,
-          inline: false,
-        });
+              return new ButtonBuilder()
+                  .setCustomId(`complete_ii_${intention.intentionId}`)
+                  .setLabel(truncatedLabel)
+                  .setStyle(intention.isCompleted ? ButtonStyle.Success : ButtonStyle.Primary)
+                  .setDisabled(intention.isCompleted);
+          });
   
-        return new ActionRowBuilder<ButtonBuilder>().addComponents(completeButton);
-      });
+          // Group buttons into rows (max 5 buttons per row)
+          const actionRows: ActionRowBuilder<ButtonBuilder>[] = [];
+          for (let i = 0; i < buttons.length; i += 5) {
+              const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                  buttons.slice(i, Math.min(i + 5, buttons.length))
+              );
+              actionRows.push(row);
+          }
   
-      const reply = await interaction.reply({
-        embeds: [embed],
-        components: rows,
-        fetchReply: true,
-      });
+          // Limit to maximum 5 rows
+          const limitedRows = actionRows.slice(0, 5);
+  
+          const reply = await interaction.reply({
+              embeds: [embed],
+              components: limitedRows,
+              fetchReply: true,
+          });
   
       lastMessageIds.set(discordId, reply.id);
     },
