@@ -7,7 +7,7 @@
 ## Commands need to be deployed when any changes are made
 
 1. tsc (compile js to ts)
-2. node dist/deploy-commands.js
+2. node dist/deploy-commands.js || node dist/deploy-commands-guild.js (for local testing)
 3. node dist/bot.js
 4. Test commands in discord bot
 

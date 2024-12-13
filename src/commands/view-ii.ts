@@ -10,7 +10,7 @@ import {
   import { db } from "../drizzle/db.js";
   import { eq, and, gte, lt } from "drizzle-orm";
   import { users, weeklyImplementationIntentions } from "../drizzle/schema.js";
-  import { getStartOfWeek, getEndOfWeek } from "../helpers/date-helpers.js";
+  import { getStartOfWeekV2, getEndOfWeekV2 } from "../helpers/date-helpers.js";
   
   // Store the last message ID for each user
   const lastMessageIds = new Map<string, string>();
@@ -22,8 +22,8 @@ import {
   
     async execute(interaction: ChatInputCommandInteraction) {
       const discordId = interaction.user.id;
-      const weekStartStr = getStartOfWeek().toLocaleDateString("en-CA");
-      const endOfWeekStr = getEndOfWeek().toLocaleDateString("en-CA");
+      const weekStartStr = (await getStartOfWeekV2(interaction.user.id)).toISOString().split('T')[0];
+      const endOfWeekStr = (await getEndOfWeekV2(interaction.user.id)).toISOString().split('T')[0];
 
       console.log('Date range:', { weekStartStr, endOfWeekStr });
   

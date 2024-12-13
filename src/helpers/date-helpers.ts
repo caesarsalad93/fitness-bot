@@ -5,6 +5,20 @@
  * @returns {Date} The Date object representing the start of the week (Monday 00:00:00.000) in Pacific Time
  */
 import { DateTime } from 'luxon';
+import { db } from '../drizzle/db.js';
+import { users } from '../drizzle/schema.js';
+import { eq } from 'drizzle-orm';
+
+// Add this new function first
+async function getUserTimezone(discordId: string): Promise<string> {
+  const user = await db
+    .select({ timezone: users.timezone })
+    .from(users)
+    .where(eq(users.discordId, discordId))
+    .limit(1);
+    
+  return user[0]?.timezone || 'America/Los_Angeles';
+}
 
 export function getStartOfWeek(date?: Date, timezone = 'America/Los_Angeles') {
   // If no date provided, use current moment
@@ -18,6 +32,35 @@ export function getStartOfWeek(date?: Date, timezone = 'America/Los_Angeles') {
   }
   
   // For provided dates, convert that moment to target timezone
+  return DateTime.fromJSDate(date)
+    .setZone(timezone)
+    .startOf('week')
+    .set({ weekday: 1 })
+    .startOf('day')
+    .toJSDate();
+}
+
+/**
+ * Calculates the start date of the week in user's timezone
+ * @param discordId The user's Discord ID
+ * @param date Optional date to calculate from
+ * @returns Date object representing start of week in user's timezone
+ */
+// Add new versions with 'V2' suffix to avoid conflicts
+export async function getStartOfWeekV2(discordId?: string, date?: Date): Promise<Date> {
+  const timezone = discordId 
+    ? await getUserTimezone(discordId)
+    : 'America/Los_Angeles';
+
+  if (!date) {
+    return DateTime.now()
+      .setZone(timezone)
+      .startOf('week')
+      .set({ weekday: 1 })
+      .startOf('day')
+      .toJSDate();
+  }
+  
   return DateTime.fromJSDate(date)
     .setZone(timezone)
     .startOf('week')
@@ -41,6 +84,26 @@ export function getEndOfWeek(date = new Date()) {
   
   return pacificDate
     .plus({ days: daysToAdd })
+    .endOf('day')
+    .toJSDate();
+}
+/**
+ * Calculates the end date of the week in user's timezone
+ * @param discordId The user's Discord ID
+ * @param date Optional date to calculate from
+ * @returns Date object representing end of week in user's timezone
+ */
+export async function getEndOfWeekV2(discordId: string, date?: Date) {
+  const timezone = await getUserTimezone(discordId);
+  
+  const dateTime = date 
+    ? DateTime.fromJSDate(date)
+    : DateTime.now();
+    
+  return dateTime
+    .setZone(timezone)
+    .endOf('week')
+    .set({ weekday: 7 })
     .endOf('day')
     .toJSDate();
 }
@@ -101,5 +164,25 @@ export function getTimeLeftInWeek() {
     hoursLeft,
     minutesLeft,
     timeLeftMessage,
+  };
+}
+
+/**
+ * Gets time left in the week for a specific user's timezone
+ * @param discordId The user's Discord ID
+ */
+export async function getTimeLeftInWeekV2(discordId: string) {
+  const timezone = await getUserTimezone(discordId);
+  const now = DateTime.now().setZone(timezone);
+  const endOfWeek = now.endOf('week').set({ weekday: 7 });
+  
+  const diff = endOfWeek.diff(now, ['hours', 'minutes']).toObject();
+  const hoursLeft = Math.floor(diff.hours || 0);
+  const minutesLeft = Math.floor(diff.minutes || 0);
+
+  return {
+    hoursLeft,
+    minutesLeft,
+    timeLeftMessage: `Time left in the week: ${hoursLeft} hours and ${minutesLeft} minutes.`
   };
 }

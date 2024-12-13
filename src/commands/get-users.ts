@@ -4,7 +4,7 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import { db } from "../drizzle/db.js";
-import { getStartOfWeek, getEndOfWeek, getNextMonday, getTimeLeftInWeek } from "../helpers/date-helpers.js";
+import { getStartOfWeekV2, getEndOfWeekV2, getNextMonday, getTimeLeftInWeek } from "../helpers/date-helpers.js";
 import { eq, and, gte, lte, lt } from "drizzle-orm";
 import { weeklyUserGoals, users } from "../drizzle/schema.js";
 
@@ -15,8 +15,8 @@ const command = {
 
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
-    const startOfWeekStr = getStartOfWeek().toISOString().split('T')[0];
-    const endOfWeekStr = getEndOfWeek().toISOString().split('T')[0];
+    const startOfWeekStr = (await getStartOfWeekV2(interaction.user.id)).toISOString().split('T')[0];
+    const endOfWeekStr = (await getEndOfWeekV2(interaction.user.id)).toISOString().split('T')[0];
     console.log(`start of week str: ${startOfWeekStr}, end of week str: ${endOfWeekStr}`)
 
     try {
@@ -45,7 +45,7 @@ const command = {
       const { hoursLeft, minutesLeft, timeLeftMessage } = getTimeLeftInWeek();
 
       const embed = new EmbedBuilder()
-        .setTitle("Users with Goals This Week")
+        .setTitle("Users with Goals This Week(v2)")
         .setDescription(timeLeftMessage)
         .setColor("#0099ff")
         .setTimestamp();

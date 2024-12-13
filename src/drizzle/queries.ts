@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "./db.js";
 import { users, weeklyUserGoals, weeklyImplementationIntentions } from "./schema.js";
-import { getStartOfWeek } from "../helpers/date-helpers.js";
+import { getStartOfWeek, getStartOfWeekV2 } from "../helpers/date-helpers.js";
 import { formatDateForPostgres } from "../helpers/format-date-for-postgres.js";
 
 export async function setWeekGoal(
@@ -33,7 +33,7 @@ export async function setWeekGoal(
       .where(eq(users.discordId, discordId));
   }
 
-  const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
+  const weekStartStr = (await getStartOfWeekV2(discordId)).toISOString().split('T')[0];
 
   const newGoal = await db.insert(weeklyUserGoals).values({
     userId: user[0].userId,
@@ -75,7 +75,7 @@ export async function setImplementationIntention(
       .where(eq(users.discordId, discordId));
   }
 
-  const weekStartStr = getStartOfWeek().toISOString().split('T')[0];
+  const weekStartStr = (await getStartOfWeekV2(discordId)).toISOString().split('T')[0];
 
   // Insert the new implementation intention
   const newII = await db
@@ -100,7 +100,7 @@ export async function insertDummyData() {
   }).returning({ userId: users.userId });
 
   // Get the current week's start date
-  const currentWeekStartStr = getStartOfWeek().toISOString().split('T')[0];
+  const currentWeekStartStr = (await getStartOfWeekV2('123456789')).toISOString().split('T')[0];
 
   // Insert two goals for the new user
   await db.insert(weeklyUserGoals).values([

@@ -4,7 +4,7 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import { db } from "../drizzle/db.js";
-import { getStartOfWeek, getEndOfWeek } from "../helpers/date-helpers.js";
+import { getStartOfWeekV2, getEndOfWeekV2 } from "../helpers/date-helpers.js";
 import { eq, and, gte, lte, sql, lt } from "drizzle-orm";
 import { weeklyUserGoals, users } from "../drizzle/schema.js";
 
@@ -35,8 +35,8 @@ const command = {
       return;
     }
     const startDate = new Date(startDateStr);
-    const weekStartStr = getStartOfWeek(startDate).toISOString().split("T")[0];
-    const endOfWeekStr = getEndOfWeek(startDate).toISOString().split("T")[0];
+    const weekStartStr = (await getStartOfWeekV2(interaction.user.id)).toISOString().split("T")[0];
+    const endOfWeekStr = (await getEndOfWeekV2(interaction.user.id)).toISOString().split("T")[0];
 
     console.log("Start Date:", startDate);
     console.log("Week Start:", weekStartStr);
