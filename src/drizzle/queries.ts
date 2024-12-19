@@ -149,3 +149,340 @@ export async function insertDummyData() {
 
   console.log('Dummy data inserted successfully');
 }
+
+export async function processWeeklyPayouts(weekStart: Date) {
+  return await db.transaction(async (tx) => {
+    const weekStartStr = weekStart.toISOString().split('T')[0];
+    
+    // Get all deposits for the week
+    const deposits = await tx.query.bubbleTransactions.findMany({
+      where: and(
+        eq(bubbleTransactions.weekStart, weekStartStr),
+        eq(bubbleTransactions.type, 'WEEKLY_DEPOSIT')
+      )
+    });
+    
+    const totalPool = Math.abs(deposits.reduce((sum, d) => sum + d.amount, 0));
+    
+    // Get all users who had goals this week and their completion status
+    const usersWithGoals = await tx
+      .select({
+        userId: users.userId,
+        totalGoals: sql<number>`count(${weeklyUserGoals.goalId})`,
+        completedGoals: sql<number>`sum(case when ${weeklyUserGoals.isCompleted} then 1 else 0 end)`,
+      })
+      .from(users)
+      .innerJoin(weeklyUserGoals, eq(users.userId, weeklyUserGoals.userId))
+      .where(eq(weeklyUserGoals.weekStart, weekStartStr))
+      .groupBy(users.userId);
+
+    // Filter for users who completed all goals
+    const successfulUsers = usersWithGoals.filter(
+      user => user.totalGoals > 0 && user.totalGoals === user.completedGoals
+    );
+
+    if (successfulUsers.length === 0) {
+      // No winners - return deposits to all users who participated
+      for (const deposit of deposits) {
+        await tx.insert(bubbleTransactions).values({
+          userId: deposit.userId,
+          amount: Math.abs(deposit.amount), // Make positive for refund
+          type: 'DEPOSIT_REFUND',
+          weekStart: weekStartStr,
+          description: 'Deposit refunded - no users completed all goals'
+        });
+
+        await tx.update(users)
+          .set({ balance: sql`balance + ${Math.abs(deposit.amount)}` })
+          .where(eq(users.userId, Number(deposit.userId)));
+      }
+
+      return {
+        totalPool,
+        successfulUsers: [],
+        PayoutPerSuccessfulUser: 0,
+        refunded: true,
+        totalUsers: deposits.length,  // Add this line
+        error: null
+      };
+    }
+
+    const PayoutPerSuccessfulUser = Math.floor(totalPool / successfulUsers.length);
+
+    // Process payouts for each successful user
+    for (const user of successfulUsers) {
+      await tx.insert(bubbleTransactions).values({
+        userId: user.userId,
+        amount: PayoutPerSuccessfulUser,
+        type: 'WEEKLY_PAYOUT',
+        weekStart: weekStartStr,
+        description: `Weekly payout for completing ${user.totalGoals} goals`
+      });
+
+      await tx.update(users)
+        .set({ balance: sql`balance + ${PayoutPerSuccessfulUser}` })
+        .where(eq(users.userId, user.userId));
+    }
+
+    return {
+      totalPool,
+      successfulUsers,
+      PayoutPerSuccessfulUser,
+      totalUsers: deposits.length,  // Add this line
+      error: null
+    };
+  });
+}
+
+export async function testWeeklyPayout() {
+  try {
+    // Run tests independently
+    try {
+      console.log('\n--- Running Initial Test ---');
+      await runInitialTest();
+    } catch (error) {
+      console.error('Initial test failed:', error);
+    }
+
+    try {
+      console.log('\n--- Running Multiple Goals Test ---');
+      await runMultipleGoalsTest();
+    } catch (error) {
+      console.error('Multiple goals test failed:', error);
+    }
+
+    try {
+      console.log('\n--- Running Different Weeks Test ---');
+      await runDifferentWeeksTest();
+    } catch (error) {
+      console.error('Different weeks test failed:', error);
+    }
+
+  } catch (error) {
+    console.error('Test setup failed:', error);
+    throw error;
+  }
+}
+
+async function runInitialTest() {
+  // Create test users
+  const [user1] = await db.insert(users).values({
+    discordUsername: 'TestUser1',
+    discordId: 'test1',
+    balance: 100,
+  }).returning();
+
+  const [user2] = await db.insert(users).values({
+    discordUsername: 'TestUser2',
+    discordId: 'test2',
+    balance: 100,
+  }).returning();
+
+  try {
+    // Get current week start using existing function
+    const weekStart = await getStartOfWeekV2(user1.discordId!);
+    const weekStartStr = weekStart.toISOString().split('T')[0];
+
+    // Create goals for both users
+    await db.insert(weeklyUserGoals).values([
+      {
+        userId: user1.userId,
+        weekStart: weekStartStr,
+        activityName: 'Test Goal 1',
+        targetFrequency: 1,
+        isCompleted: true,
+        currentProgress: 1
+      },
+      {
+        userId: user2.userId,
+        weekStart: weekStartStr,
+        activityName: 'Test Goal 2',
+        targetFrequency: 1,
+        isCompleted: false,
+        currentProgress: 0
+      }
+    ]);
+
+    // Simulate deposits
+    await db.insert(bubbleTransactions).values([
+      {
+        userId: user1.userId,
+        amount: -5,
+        type: 'WEEKLY_DEPOSIT',
+        weekStart: weekStartStr,
+        description: 'Test deposit'
+      },
+      {
+        userId: user2.userId,
+        amount: -5,
+        type: 'WEEKLY_DEPOSIT',
+        weekStart: weekStartStr,
+        description: 'Test deposit'
+      }
+    ]);
+
+    // Process payouts
+    const result = await processWeeklyPayouts(weekStart);
+    console.log('Initial Test Result:', result);
+  } finally {
+    // Cleanup
+    await cleanup([user1.userId, user2.userId]);
+  }
+}
+
+async function runMultipleGoalsTest() {
+  // Create test users
+  const [user1] = await db.insert(users).values({
+    discordUsername: 'TestUser1',
+    discordId: 'test1',
+    balance: 100,
+  }).returning();
+
+  const [user2] = await db.insert(users).values({
+    discordUsername: 'TestUser2',
+    discordId: 'test2',
+    balance: 100,
+  }).returning();
+
+  try {
+    const weekStart = await getStartOfWeekV2(user1.discordId!);
+    const weekStartStr = weekStart.toISOString().split('T')[0];
+
+    // Create multiple goals for each user
+    await db.insert(weeklyUserGoals).values([
+      {
+        userId: user1.userId,
+        weekStart: weekStartStr,
+        activityName: 'Test Goal 1b',
+        targetFrequency: 1,
+        isCompleted: true,
+        currentProgress: 1
+      },
+      {
+        userId: user1.userId,
+        weekStart: weekStartStr,
+        activityName: 'Test Goal 1c',
+        targetFrequency: 1,
+        isCompleted: false, // User1 completes 1/2 goals
+        currentProgress: 0
+      },
+      {
+        userId: user2.userId,
+        weekStart: weekStartStr,
+        activityName: 'Test Goal 2b',
+        targetFrequency: 1,
+        isCompleted: true,
+        currentProgress: 1
+      },
+      {
+        userId: user2.userId,
+        weekStart: weekStartStr,
+        activityName: 'Test Goal 2c',
+        targetFrequency: 1,
+        isCompleted: true, // User2 completes 2/2 goals
+        currentProgress: 1
+      }
+    ]);
+
+    // Simulate deposits
+    await db.insert(bubbleTransactions).values([
+      {
+        userId: user1.userId,
+        amount: -5,
+        type: 'WEEKLY_DEPOSIT',
+        weekStart: weekStartStr,
+        description: 'Test deposit'
+      },
+      {
+        userId: user2.userId,
+        amount: -5,
+        type: 'WEEKLY_DEPOSIT',
+        weekStart: weekStartStr,
+        description: 'Test deposit'
+      }
+    ]);
+
+    // Process payouts
+    const result = await processWeeklyPayouts(weekStart);
+    console.log('Multiple Goals Test Result:', result);
+  } finally {
+    // Cleanup
+    await cleanup([user1.userId, user2.userId]);
+  }
+}
+
+
+async function runDifferentWeeksTest() {
+  // Create test user
+  const [user1] = await db.insert(users).values({
+    discordUsername: 'TestUser1',
+    discordId: 'test1',
+    balance: 100,
+  }).returning();
+
+  try {
+    const weekStart = await getStartOfWeekV2(user1.discordId!);
+    const lastWeekStart = new Date(weekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    const lastWeekStartStr = lastWeekStart.toISOString().split('T')[0];
+    const weekStartStr = weekStart.toISOString().split('T')[0];
+
+    // Create goals for different weeks
+    await db.insert(weeklyUserGoals).values([
+      {
+        userId: user1.userId,
+        weekStart: lastWeekStartStr,
+        activityName: 'Old Goal',
+        targetFrequency: 1,
+        isCompleted: true,
+        currentProgress: 1
+      },
+      {
+        userId: user1.userId,
+        weekStart: weekStartStr,
+        activityName: 'Current Goal',
+        targetFrequency: 1,
+        isCompleted: true,
+        currentProgress: 1
+      }
+    ]);
+
+    // Simulate deposits for both weeks
+    await db.insert(bubbleTransactions).values([
+      {
+        userId: user1.userId,
+        amount: -5,
+        type: 'WEEKLY_DEPOSIT',
+        weekStart: lastWeekStartStr,
+        description: 'Last week deposit'
+      },
+      {
+        userId: user1.userId,
+        amount: -5,
+        type: 'WEEKLY_DEPOSIT',
+        weekStart: weekStartStr,
+        description: 'Current week deposit'
+      }
+    ]);
+
+    // Process payouts for last week
+    const lastWeekResult = await processWeeklyPayouts(lastWeekStart);
+    console.log('Last Week Test Result:', lastWeekResult);
+
+    // Process payouts for current week
+    const currentWeekResult = await processWeeklyPayouts(weekStart);
+    console.log('Current Week Test Result:', currentWeekResult);
+  } finally {
+    // Cleanup
+    await cleanup([user1.userId]);
+  }
+}
+
+async function cleanup(userIds: number[]) {
+  await db.delete(bubbleTransactions)
+    .where(sql`${bubbleTransactions.userId} in ${userIds}`);
+  await db.delete(weeklyUserGoals)
+    .where(sql`${weeklyUserGoals.userId} in ${userIds}`);
+  await db.delete(users)
+    .where(sql`${users.userId} in ${userIds}`);
+}
