@@ -12,8 +12,8 @@
 4. Test commands in discord bot
 
 ## Common Drizzle Commands
-
+  You need to cd into src to run these commands
 1. npx drizzle-kit generate
 2. npx drizzle-kit migrate
 3. npx drizzle-kit studio
-  You need to cd into src to run this command
+

@@ -28,9 +28,7 @@ export const weeklyUserGoals = pgTable("fb_weekly_user_goals", {
     activityName: varchar("activity_name").notNull(),
     targetFrequency: integer("target_frequency").notNull(),
     currentProgress: integer("current_progress").notNull().default(0),
-    depositAmount: decimal("deposit_amount", { precision: 10, scale: 2}).default("0"),
     isCompleted: boolean("is_completed").notNull().default(false),
-    payoutAmount: decimal("payout_amount", { precision: 10, scale: 2}),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     lastUpdated: timestamp("last_updated").notNull().defaultNow().$onUpdate(() => new Date()),
 });
@@ -52,3 +50,16 @@ export const weeklyImplementationIntentions = pgTable("fb_weekly_implementation_
 
 export type WeeklyImplementationIntention = typeof weeklyImplementationIntentions.$inferSelect;
 export type NewWeeklyImplementationIntention = typeof weeklyImplementationIntentions.$inferInsert;
+
+export const bubbleTransactions = pgTable("fb_bubble_transactions", {
+    transactionId: serial("transaction_id").primaryKey(),
+    userId: integer("user_id").references(() => users.userId),
+    amount: integer("amount").notNull(),
+    type: varchar("type", { length: 20 }).notNull(), // 'WEEKLY_DEPOSIT' or 'WEEKLY_PAYOUT'
+    weekStart: date("week_start").notNull(), // Add this to track which week this transaction is for
+    description: varchar("description", { length: 255 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type BubbleTransaction = typeof bubbleTransactions.$inferSelect;
+export type NewBubbleTransaction = typeof bubbleTransactions.$inferInsert;
