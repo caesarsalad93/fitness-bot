@@ -26,8 +26,19 @@ const setWeekGoalCommand = {
             await interaction.reply(`Goal set! You aim to ${activity} ${frequency} times this week.`);
         } catch (error) {
             console.error('Error setting goal:', error);
-            await interaction.reply('Sorry, there was an error setting your goal. Please try again later.');
-          }
+            // Check if it's an insufficient balance error
+            if (error instanceof Error && error.message.includes('Insufficient balance')) {
+                await interaction.reply({
+                    content: `❌ ${error.message}`,
+                    ephemeral: true
+                });
+            } else {
+                await interaction.reply({
+                    content: 'Sorry, there was an error setting your goal. Please try again later.',
+                    ephemeral: true
+                });
+            }
+        }
     },
 };
 

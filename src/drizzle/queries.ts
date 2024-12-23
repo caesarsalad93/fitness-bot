@@ -45,6 +45,16 @@ export async function setWeekGoal(
       )
     });
 
+    // If no deposit exists yet, check balance before proceeding
+    if (!existingDeposit) {
+      const DEPOSIT_AMOUNT = 5;
+      
+      // Check if user has sufficient balance
+      if (user[0].balance < DEPOSIT_AMOUNT) {
+        throw new Error(`Insufficient balance. You need ${DEPOSIT_AMOUNT} bubbles to set a goal.`);
+      }
+    }
+
     // Create the new goal
     const [newGoal] = await tx.insert(weeklyUserGoals).values({
       userId: user[0].userId,
