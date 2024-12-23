@@ -11,22 +11,36 @@ export async function setWeekGoal(
   targetFrequency: number
 ) {
   return await db.transaction(async (tx) => {
-    // Get or create user (your existing logic)
+    // First, get the user without creating one
     let user = await tx
       .select()
       .from(users)
       .where(eq(users.discordId, discordId))
       .limit(1);
 
+    const DEPOSIT_AMOUNT = 5;
+    
+    // If user exists, check balance before proceeding
+    if (user.length > 0 && user[0].balance < DEPOSIT_AMOUNT) {
+      throw new Error(`Insufficient balance. You need ${DEPOSIT_AMOUNT} bubbles to set a goal.`);
+    }
+
+    // Now proceed with creating/updating user if needed
     if (user.length === 0) {
       const newUser = await tx
         .insert(users)
         .values({
           discordId,
           discordUsername,
+          balance: 20, // Start with 20 balance for new users
         })
         .returning();
       user = newUser;
+      
+      // Check balance for new user
+      if (user[0].balance < DEPOSIT_AMOUNT) {
+        throw new Error(`Insufficient balance. You need ${DEPOSIT_AMOUNT} bubbles to set a goal.`);
+      }
     } else {
       await tx
         .update(users)
@@ -45,28 +59,8 @@ export async function setWeekGoal(
       )
     });
 
-    // If no deposit exists yet, check balance before proceeding
-    if (!existingDeposit) {
-      const DEPOSIT_AMOUNT = 5;
-      
-      // Check if user has sufficient balance
-      if (user[0].balance < DEPOSIT_AMOUNT) {
-        throw new Error(`Insufficient balance. You need ${DEPOSIT_AMOUNT} bubbles to set a goal.`);
-      }
-    }
-
-    // Create the new goal
-    const [newGoal] = await tx.insert(weeklyUserGoals).values({
-      userId: user[0].userId,
-      weekStart: weekStartStr,
-      activityName,
-      targetFrequency,
-    }).returning();
-
     // If no deposit exists yet, create one and update balance
     if (!existingDeposit) {
-      const DEPOSIT_AMOUNT = 5;
-      
       await tx.insert(bubbleTransactions).values({
         userId: user[0].userId,
         amount: -DEPOSIT_AMOUNT,
@@ -79,6 +73,14 @@ export async function setWeekGoal(
         .set({ balance: sql`balance - ${DEPOSIT_AMOUNT}` })
         .where(eq(users.userId, user[0].userId));
     }
+
+    // Create the new goal
+    const [newGoal] = await tx.insert(weeklyUserGoals).values({
+      userId: user[0].userId,
+      weekStart: weekStartStr,
+      activityName,
+      targetFrequency,
+    }).returning();
 
     return newGoal;
   });
