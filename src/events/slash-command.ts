@@ -10,6 +10,14 @@ const slash = {
     const isProd = process.env.ENVIRONMENT === "production";
     const isTestServer = interaction.guild?.id === testServerId;
 
+    console.log({
+      isLocal,
+      isProd,
+      isTestServer,
+      LOCAL: process.env.LOCAL,
+      ENVIRONMENT: process.env.ENVIRONMENT
+    });
+
     // Local bot only responds to test server
     if (isLocal) {
       if (!isTestServer) {
