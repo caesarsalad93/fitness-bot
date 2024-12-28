@@ -11,9 +11,12 @@ const slash = {
     const isTestServer = interaction.guild?.id === testServerId;
 
     // Local bot only responds to test server
-    if (isLocal && !isTestServer) {
-      console.log("Local bot ignoring production servers");
-      return;
+    if (isLocal) {
+      if (!isTestServer) {
+        console.log("Local bot ignoring production servers");
+        return;
+      }
+      // Local bot continues to process test server commands
     }
 
     // Production bot only responds to production servers
