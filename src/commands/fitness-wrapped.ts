@@ -127,9 +127,19 @@ async function calculateUserStats(discordId: string, startDate: Date): Promise<W
 
   let perfectWeeks = 0;
 
+  // Get current week start
+  const today = new Date();
+  const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay())).toISOString().split('T')[0];
+
   console.log('\n=== Weekly Completion Status ===');
   // Calculate perfect weeks while processing streaks
   for (const [weekStart, weekGoals] of weeks) {
+    // Skip current week for streak calculation
+    if (weekStart >= currentWeekStart) {
+      console.log(`Week ${weekStart}: Current week (skipped for streak)`);
+      continue;
+    }
+
     const allCompleted = weekGoals.every(goal => goal.isCompleted);
     console.log(`Week ${weekStart}: ${allCompleted ? '✅ All Complete' : '❌ Some Incomplete'} (${weekGoals.length} goals)`);
     
